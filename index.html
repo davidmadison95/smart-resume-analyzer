@@ -3,184 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Resume Analyzer</title>
+    <title>ResumeAI - Smart Resume Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * { font-family: 'Inter', sans-serif; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .dark .hero-gradient {
+            background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
         }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
+        
+        .purple-glow {
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .feature-card:hover {
+            border-color: #7C3AED;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1F2937;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #7C3AED;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5B21B6;
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header class="gradient-bg text-white p-6 shadow-lg">
-            <div class="container mx-auto flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <h1 class="text-2xl font-bold">Smart Resume Analyzer</h1>
-                </div>
-                <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-white/20 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                    </svg>
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Upload Section -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Upload Resume</h2>
-                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-purple-500 transition">
-                        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt" class="hidden">
-                        <label for="resumeInput" class="cursor-pointer">
-                            <svg class="mx-auto w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                            <p class="text-gray-600 dark:text-gray-300">Click to upload or drag and drop</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">PDF, DOC, DOCX, TXT (MAX. 5MB)</p>
-                        </label>
+<body class="bg-white dark:bg-gray-900 transition-colors duration-300">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
                     </div>
-                    <div id="resumeStatus" class="mt-4 hidden">
-                        <div class="flex items-center space-x-2">
-                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span class="text-green-600 dark:text-green-400" id="resumeFileName"></span>
-                        </div>
-                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Resume<span class="text-purple-600">AI</span></h1>
                 </div>
-
-                <!-- Job Description Section -->
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in" style="animation-delay: 0.1s">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Job Description</h2>
-                    <textarea id="jobDescription" 
-                        class="w-full h-48 p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                        placeholder="Paste the job description here..."></textarea>
-                    <button id="analyzeBtn" 
-                        class="mt-4 w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Analyze Resume
+                <div class="flex items-center space-x-4">
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 transition">Features</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 transition">Pricing</a>
+                        <a href="#" class="text-gray-600 dark:text-gray-300 hover:text-purple-600 transition">About</a>
+                    </nav>
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <svg id="darkModeIcon" class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <!-- Results Section -->
-            <div id="results" class="mt-8 hidden">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in">
-                    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Analysis Results</h2>
+    <!-- Hero Section -->
+    <section class="hero-gradient py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 slide-in">
+                Get Your Resume <span class="gradient-text">ATS-Ready</span>
+            </h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto slide-in" style="animation-delay: 0.1s">
+                Our AI-powered analyzer helps you optimize your resume for Applicant Tracking Systems and land more interviews
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 slide-in" style="animation-delay: 0.2s">
+                <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Instant Analysis</span>
+                </div>
+                <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>ATS Optimization</span>
+                </div>
+                <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Keyword Matching</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <!-- Upload Section -->
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Resume Upload -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 feature-card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Upload Resume</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Step 1 of 2</span>
+                    </div>
                     
-                    <!-- Score Overview -->
-                    <div class="grid md:grid-cols-3 gap-6 mb-8">
-                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-xl">
-                            <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">Overall Match</h3>
-                            <div class="text-4xl font-bold text-blue-600 dark:text-blue-300" id="overallScore">0%</div>
-                        </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
-                            <h3 class="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">Keywords Found</h3>
-                            <div class="text-4xl font-bold text-green-600 dark:text-green-300" id="keywordsFound">0</div>
-                        </div>
-                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-xl">
-                            <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-2">ATS Score</h3>
-                            <div class="text-4xl font-bold text-purple-600 dark:text-purple-300" id="atsScore">0/100</div>
+                    <div class="border-2 border-dashed border-purple-300 dark:border-purple-700 rounded-xl p-8 text-center hover:border-purple-500 transition bg-purple-50 dark:bg-purple-900/20">
+                        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt" class="hidden">
+                        <label for="resumeInput" class="cursor-pointer">
+                            <div class="w-16 h-16 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                            </div>
+                            <p class="text-lg font-medium text-gray-900 dark:text-white mb-2">Drop your resume here</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">or click to browse</p>
+                            <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Supports PDF, DOC, DOCX, TXT (Max 5MB)</p>
+                        </label>
+                    </div>
+                    
+                    <div id="resumeStatus" class="mt-6 hidden">
+                        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center">
+                            <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-sm font-medium text-green-900 dark:text-green-100">Resume uploaded successfully</p>
+                                <p class="text-sm text-green-700 dark:text-green-300" id="resumeFileName"></p>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Detailed Analysis -->
+                <!-- Job Description -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 feature-card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Job Description</h3>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">Step 2 of 2</span>
+                    </div>
+                    
+                    <textarea id="jobDescription" 
+                        class="w-full h-64 p-4 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition"
+                        placeholder="Paste the job description here..."></textarea>
+                    
+                    <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                        <p>💡 Pro tip: Include the entire job posting for best results</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analyze Button -->
+            <div class="text-center mt-8">
+                <button id="analyzeBtn" 
+                    class="px-12 py-4 bg-purple-600 text-white text-lg font-semibold rounded-xl hover:bg-purple-700 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed purple-glow">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        Analyze My Resume
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="max-w-6xl mx-auto mt-16 hidden">
+            <!-- Score Cards -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <!-- ATS Score -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition">
+                    <div class="relative w-32 h-32 mx-auto mb-4">
+                        <svg class="w-32 h-32">
+                            <circle cx="64" cy="64" r="56" stroke="#E5E7EB" stroke-width="12" fill="none"/>
+                            <circle id="atsCircle" cx="64" cy="64" r="56" stroke="#7C3AED" stroke-width="12" fill="none"
+                                stroke-dasharray="351.86" stroke-dashoffset="351.86" class="progress-ring"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-3xl font-bold text-purple-600" id="atsScoreDisplay">0%</span>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">ATS Score</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Resume compatibility</p>
+                </div>
+
+                <!-- Match Score -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition">
+                    <div class="relative w-32 h-32 mx-auto mb-4">
+                        <svg class="w-32 h-32">
+                            <circle cx="64" cy="64" r="56" stroke="#E5E7EB" stroke-width="12" fill="none"/>
+                            <circle id="matchCircle" cx="64" cy="64" r="56" stroke="#10B981" stroke-width="12" fill="none"
+                                stroke-dasharray="351.86" stroke-dashoffset="351.86" class="progress-ring"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-3xl font-bold text-green-600" id="matchScoreDisplay">0%</span>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Match Score</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Job alignment</p>
+                </div>
+
+                <!-- Keywords -->
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 text-center transform hover:scale-105 transition">
+                    <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                        <div class="text-center">
+                            <p class="text-4xl font-bold text-blue-600" id="keywordRatio">0/0</p>
+                            <p class="text-sm text-blue-600">Keywords</p>
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Keywords Found</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Critical terms matched</p>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Detailed Analysis</h3>
+                
+                <!-- Tabs -->
+                <div class="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                    <button onclick="switchTab('keywords')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="keywords">Keywords</button>
+                    <button onclick="switchTab('recommendations')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="recommendations">Recommendations</button>
+                    <button onclick="switchTab('insights')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="insights">Insights</button>
+                </div>
+
+                <!-- Tab Content -->
+                <div id="keywordsTab" class="tab-content">
                     <div class="grid md:grid-cols-2 gap-6">
                         <!-- Matched Keywords -->
-                        <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
-                            <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 Matched Keywords
-                            </h3>
+                            </h4>
                             <div id="matchedKeywords" class="flex flex-wrap gap-2"></div>
                         </div>
 
                         <!-- Missing Keywords -->
-                        <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
-                            <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center">
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                                 <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 Missing Keywords
-                            </h3>
+                            </h4>
                             <div id="missingKeywords" class="flex flex-wrap gap-2"></div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Recommendations -->
-                    <div class="mt-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6">
-                        <h3 class="text-lg font-semibold mb-4 text-yellow-800 dark:text-yellow-200 flex items-center">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Recommendations
-                        </h3>
-                        <ul id="recommendations" class="space-y-2 text-gray-700 dark:text-gray-300"></ul>
+                <div id="recommendationsTab" class="tab-content hidden">
+                    <div class="space-y-4" id="recommendationsList"></div>
+                </div>
+
+                <div id="insightsTab" class="tab-content hidden">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <canvas id="radarChart" width="400" height="400"></canvas>
+                        <div class="space-y-4" id="insightsList"></div>
                     </div>
-
-                    <!-- Chart -->
-                    <div class="mt-6">
-                        <canvas id="analysisChart" width="400" height="200"></canvas>
-                    </div>
-
-                    <!-- Export Button -->
-                    <button id="exportBtn" class="mt-6 bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition transform hover:scale-105">
-                        Export Report as PDF
-                    </button>
                 </div>
             </div>
-        </main>
-    </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 justify-center mt-8">
+                <button onclick="exportReport()" class="px-6 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export Report
+                </button>
+                <button onclick="window.location.reload()" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                    Analyze Another Resume
+                </button>
+            </div>
+        </div>
+    </main>
 
     <script>
-        // PDF.js workerSrc
+        // PDF.js configuration
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
 
-        // State management
+        // State
         let resumeContent = '';
         let analysisResults = null;
 
-        // Dark mode toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        darkModeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
-        });
+        // Dark mode functionality
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('darkMode', html.classList.contains('dark'));
+            updateDarkModeIcon();
+        }
+
+        function updateDarkModeIcon() {
+            const icon = document.getElementById('darkModeIcon');
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
 
         // Initialize dark mode
         if (localStorage.getItem('darkMode') === 'true') {
             document.documentElement.classList.add('dark');
         }
+        updateDarkModeIcon();
 
-        // File upload handling
-        const resumeInput = document.getElementById('resumeInput');
-        const resumeStatus = document.getElementById('resumeStatus');
-        const resumeFileName = document.getElementById('resumeFileName');
-
-        resumeInput.addEventListener('change', async (e) => {
+        // File upload
+        document.getElementById('resumeInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
                 if (file.size > 5 * 1024 * 1024) {
@@ -188,8 +370,8 @@
                     return;
                 }
                 
-                resumeFileName.textContent = file.name;
-                resumeStatus.classList.remove('hidden');
+                document.getElementById('resumeFileName').textContent = file.name;
+                document.getElementById('resumeStatus').classList.remove('hidden');
                 
                 try {
                     resumeContent = await parseFile(file);
@@ -201,7 +383,7 @@
             }
         });
 
-        // File parsing
+        // File parsing functions
         async function parseFile(file) {
             const fileType = file.type;
             
@@ -236,7 +418,7 @@
             return result.value;
         }
 
-        // Analysis function
+        // Analysis
         document.getElementById('analyzeBtn').addEventListener('click', () => {
             const jobDesc = document.getElementById('jobDescription').value;
             
@@ -250,11 +432,9 @@
         });
 
         function analyzeResume(resume, jobDesc) {
-            // Extract keywords from job description
             const jobKeywords = extractKeywords(jobDesc);
             const resumeKeywords = extractKeywords(resume);
             
-            // Find matched and missing keywords
             const matched = jobKeywords.filter(kw => 
                 resumeKeywords.some(rk => rk.toLowerCase() === kw.toLowerCase())
             );
@@ -262,51 +442,48 @@
                 !matched.some(mk => mk.toLowerCase() === kw.toLowerCase())
             );
             
-            // Calculate scores
-            const overallScore = Math.round((matched.length / jobKeywords.length) * 100) || 0;
+            const matchScore = Math.round((matched.length / jobKeywords.length) * 100) || 0;
             const atsScore = calculateATSScore(resume, matched.length, jobKeywords.length);
             
-            // Generate recommendations
             const recommendations = generateRecommendations(resume, missing, atsScore);
+            const insights = generateInsights(resume, matched, missing);
             
             return {
-                overallScore,
+                matchScore,
                 atsScore,
                 matchedKeywords: matched,
                 missingKeywords: missing,
                 totalKeywords: jobKeywords.length,
-                recommendations
+                recommendations,
+                insights
             };
         }
 
         function extractKeywords(text) {
-            // Common words to exclude
-            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'including', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon', 'concerning', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few', 'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'work', 'working', 'experience', 'years', 'year', 'ability', 'skills', 'skill', 'required', 'requirements', 'looking', 'candidate', 'position', 'job', 'role']);
+            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'including', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon', 'concerning', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few', 'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'work', 'working', 'experience', 'years', 'year', 'ability', 'skills', 'skill', 'required', 'requirements', 'looking', 'candidate', 'position', 'job', 'role', 'us', 'our', 'team', 'company', 'business']);
             
-            // Extract potential keywords (focus on technical terms and skills)
             const words = text.toLowerCase()
-                .replace(/[^\w\s\+\#]/g, ' ')
+                .replace(/[^\w\s\+\#\.]/g, ' ')
                 .split(/\s+/)
                 .filter(word => word.length > 2 && !stopWords.has(word));
             
-            // Count word frequency
             const wordFreq = {};
             words.forEach(word => {
                 wordFreq[word] = (wordFreq[word] || 0) + 1;
             });
             
-            // Get top keywords based on frequency
             const keywords = Object.entries(wordFreq)
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 20)
+                .slice(0, 25)
                 .map(entry => entry[0]);
             
-            // Add common technical skills if found
+            // Add technical patterns
             const technicalPatterns = [
                 /python/i, /java(?!script)/i, /javascript/i, /react/i, /node\.?js/i,
                 /sql/i, /html/i, /css/i, /aws/i, /docker/i, /kubernetes/i,
                 /machine learning/i, /data analysis/i, /project management/i,
-                /agile/i, /scrum/i, /leadership/i, /communication/i, /teamwork/i
+                /agile/i, /scrum/i, /leadership/i, /communication/i, /teamwork/i,
+                /excel/i, /powerpoint/i, /salesforce/i, /sap/i, /oracle/i
             ];
             
             technicalPatterns.forEach(pattern => {
@@ -320,17 +497,18 @@
         }
 
         function calculateATSScore(resume, matchedCount, totalKeywords) {
-            let score = 50; // Base score
+            let score = 40;
             
-            // Keyword matching (40 points)
             score += (matchedCount / totalKeywords) * 40;
             
-            // Format checks (10 points)
-            if (resume.length > 300) score += 2;
-            if (resume.includes('@') && resume.includes('.com')) score += 2; // Email
-            if (/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(resume)) score += 2; // Phone
-            if (resume.match(/[A-Z][a-z]+\s+[A-Z][a-z]+/)) score += 2; // Name format
-            if (resume.toLowerCase().includes('experience') || resume.toLowerCase().includes('education')) score += 2;
+            // Format checks
+            if (resume.length > 300) score += 3;
+            if (resume.includes('@')) score += 3;
+            if (/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(resume)) score += 3;
+            if (resume.toLowerCase().includes('experience')) score += 3;
+            if (resume.toLowerCase().includes('education')) score += 3;
+            if (resume.toLowerCase().includes('skills')) score += 3;
+            if (resume.match(/\d{4}/)) score += 2;
             
             return Math.min(Math.round(score), 100);
         }
@@ -339,105 +517,214 @@
             const recommendations = [];
             
             if (missingKeywords.length > 0) {
-                recommendations.push(`Add these missing keywords to your resume: ${missingKeywords.slice(0, 5).join(', ')}`);
+                recommendations.push({
+                    type: 'critical',
+                    title: 'Add Missing Keywords',
+                    description: `Include these important keywords: ${missingKeywords.slice(0, 5).join(', ')}`
+                });
             }
             
             if (atsScore < 70) {
-                recommendations.push('Improve your resume format with clear sections for Experience, Education, and Skills');
+                recommendations.push({
+                    type: 'important',
+                    title: 'Improve Resume Structure',
+                    description: 'Use clear section headers: Professional Summary, Experience, Education, Skills'
+                });
             }
             
             if (!resume.includes('@')) {
-                recommendations.push('Include your email address in the resume');
+                recommendations.push({
+                    type: 'important',
+                    title: 'Add Contact Information',
+                    description: 'Include your email address and phone number at the top'
+                });
             }
             
-            if (resume.length < 500) {
-                recommendations.push('Add more detail about your experience and achievements');
-            }
+            recommendations.push({
+                type: 'suggestion',
+                title: 'Use Action Verbs',
+                description: 'Start bullet points with strong action verbs like "Managed", "Developed", "Achieved"'
+            });
             
-            if (!resume.match(/\d{4}/)) {
-                recommendations.push('Include dates for your work experience and education');
-            }
-            
-            recommendations.push('Use bullet points to list your achievements and responsibilities');
-            recommendations.push('Quantify your achievements with numbers and percentages where possible');
+            recommendations.push({
+                type: 'suggestion',
+                title: 'Quantify Achievements',
+                description: 'Add numbers and percentages to demonstrate impact (e.g., "Increased sales by 25%")'
+            });
             
             return recommendations;
+        }
+
+        function generateInsights(resume, matched, missing) {
+            return [
+                {
+                    label: 'Keyword Density',
+                    value: `${((matched.length / (matched.length + missing.length)) * 100).toFixed(1)}%`,
+                    description: 'Percentage of job keywords found in your resume'
+                },
+                {
+                    label: 'Resume Length',
+                    value: `${resume.split(/\s+/).length} words`,
+                    description: 'Ideal length is 400-800 words for most positions'
+                },
+                {
+                    label: 'Skills Match',
+                    value: matched.length > 10 ? 'Strong' : matched.length > 5 ? 'Moderate' : 'Weak',
+                    description: 'How well your skills align with job requirements'
+                },
+                {
+                    label: 'ATS Readability',
+                    value: resume.includes('•') || resume.includes('-') ? 'Good' : 'Needs Work',
+                    description: 'Use bullet points for better ATS parsing'
+                }
+            ];
         }
 
         function displayResults(results) {
             document.getElementById('results').classList.remove('hidden');
             
-            // Update scores
-            document.getElementById('overallScore').textContent = results.overallScore + '%';
-            document.getElementById('keywordsFound').textContent = results.matchedKeywords.length + '/' + results.totalKeywords;
-            document.getElementById('atsScore').textContent = results.atsScore + '/100';
+            // Animate scores
+            animateScore('atsScoreDisplay', results.atsScore, '%');
+            animateScore('matchScoreDisplay', results.matchScore, '%');
+            animateCircle('atsCircle', results.atsScore);
+            animateCircle('matchCircle', results.matchScore);
             
-            // Update matched keywords
-            const matchedContainer = document.getElementById('matchedKeywords');
-            matchedContainer.innerHTML = '';
-            results.matchedKeywords.forEach(keyword => {
-                const span = document.createElement('span');
-                span.className = 'px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full text-sm';
-                span.textContent = keyword;
-                matchedContainer.appendChild(span);
-            });
+            document.getElementById('keywordRatio').textContent = 
+                `${results.matchedKeywords.length}/${results.totalKeywords}`;
             
-            // Update missing keywords
-            const missingContainer = document.getElementById('missingKeywords');
-            missingContainer.innerHTML = '';
-            results.missingKeywords.slice(0, 10).forEach(keyword => {
-                const span = document.createElement('span');
-                span.className = 'px-3 py-1 bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100 rounded-full text-sm';
-                span.textContent = keyword;
-                missingContainer.appendChild(span);
-            });
+            // Display keywords
+            displayKeywords('matchedKeywords', results.matchedKeywords, 'green');
+            displayKeywords('missingKeywords', results.missingKeywords.slice(0, 10), 'red');
             
-            // Update recommendations
-            const recoContainer = document.getElementById('recommendations');
-            recoContainer.innerHTML = '';
-            results.recommendations.forEach(rec => {
-                const li = document.createElement('li');
-                li.className = 'flex items-start';
-                li.innerHTML = `<span class="text-yellow-600 mr-2">•</span> ${rec}`;
-                recoContainer.appendChild(li);
-            });
+            // Display recommendations
+            displayRecommendations(results.recommendations);
             
-            // Update chart
-            updateChart(results);
+            // Display insights
+            displayInsights(results.insights);
+            
+            // Create radar chart
+            createRadarChart(results);
+            
+            // Show keywords tab by default
+            switchTab('keywords');
             
             // Scroll to results
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
 
-        let chartInstance = null;
-
-        function updateChart(results) {
-            const ctx = document.getElementById('analysisChart').getContext('2d');
+        function animateScore(elementId, targetValue, suffix = '') {
+            const element = document.getElementById(elementId);
+            let currentValue = 0;
+            const increment = targetValue / 30;
             
-            if (chartInstance) {
-                chartInstance.destroy();
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= targetValue) {
+                    currentValue = targetValue;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.round(currentValue) + suffix;
+            }, 30);
+        }
+
+        function animateCircle(circleId, percentage) {
+            const circle = document.getElementById(circleId);
+            const circumference = 2 * Math.PI * 56;
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            setTimeout(() => {
+                circle.style.transition = 'stroke-dashoffset 1s ease-in-out';
+                circle.style.strokeDashoffset = offset;
+            }, 100);
+        }
+
+        function displayKeywords(containerId, keywords, color) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            keywords.forEach(keyword => {
+                const span = document.createElement('span');
+                span.className = `px-3 py-1 bg-${color}-100 dark:bg-${color}-900/30 text-${color}-700 dark:text-${color}-300 rounded-full text-sm font-medium`;
+                span.textContent = keyword;
+                container.appendChild(span);
+            });
+        }
+
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendationsList');
+            container.innerHTML = '';
+            
+            recommendations.forEach(rec => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-4';
+                
+                const iconColor = rec.type === 'critical' ? 'red' : rec.type === 'important' ? 'yellow' : 'blue';
+                
+                div.innerHTML = `
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="w-6 h-6 text-${iconColor}-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h5 class="text-sm font-semibold text-gray-900 dark:text-white">${rec.title}</h5>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">${rec.description}</p>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function displayInsights(insights) {
+            const container = document.getElementById('insightsList');
+            container.innerHTML = '';
+            
+            insights.forEach(insight => {
+                const div = document.createElement('div');
+                div.className = 'bg-gray-50 dark:bg-gray-700 rounded-lg p-4';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h5 class="text-sm font-semibold text-gray-900 dark:text-white">${insight.label}</h5>
+                        <span class="text-sm font-bold text-purple-600">${insight.value}</span>
+                    </div>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${insight.description}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        let radarChart = null;
+
+        function createRadarChart(results) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            
+            if (radarChart) {
+                radarChart.destroy();
             }
             
-            chartInstance = new Chart(ctx, {
+            radarChart = new Chart(ctx, {
                 type: 'radar',
                 data: {
-                    labels: ['Overall Match', 'Keywords', 'ATS Score', 'Format', 'Content'],
+                    labels: ['Keywords', 'ATS Format', 'Content Quality', 'Structure', 'Relevance'],
                     datasets: [{
-                        label: 'Resume Analysis',
+                        label: 'Your Resume',
                         data: [
-                            results.overallScore,
-                            (results.matchedKeywords.length / results.totalKeywords) * 100,
+                            results.matchScore,
                             results.atsScore,
-                            results.atsScore > 70 ? 80 : 50,
-                            results.overallScore > 60 ? 75 : 45
+                            results.atsScore > 70 ? 80 : 60,
+                            results.atsScore > 60 ? 75 : 50,
+                            results.matchScore > 60 ? 85 : 55
                         ],
                         fill: true,
-                        backgroundColor: 'rgba(147, 51, 234, 0.2)',
-                        borderColor: 'rgba(147, 51, 234, 1)',
-                        pointBackgroundColor: 'rgba(147, 51, 234, 1)',
+                        backgroundColor: 'rgba(124, 58, 237, 0.2)',
+                        borderColor: 'rgba(124, 58, 237, 1)',
+                        pointBackgroundColor: 'rgba(124, 58, 237, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(147, 51, 234, 1)'
+                        pointHoverBorderColor: 'rgba(124, 58, 237, 1)'
                     }]
                 },
                 options: {
@@ -446,7 +733,11 @@
                             beginAtZero: true,
                             max: 100,
                             ticks: {
-                                stepSize: 20
+                                stepSize: 20,
+                                color: document.documentElement.classList.contains('dark') ? '#9CA3AF' : '#4B5563'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#374151' : '#E5E7EB'
                             }
                         }
                     },
@@ -459,25 +750,55 @@
             });
         }
 
-        // Export functionality
-        document.getElementById('exportBtn').addEventListener('click', () => {
-            if (!analysisResults) return;
-            
-            // Create report content
-            let report = `RESUME ANALYSIS REPORT\n`;
-            report += `Generated: ${new Date().toLocaleDateString()}\n\n`;
-            report += `OVERALL SCORE: ${analysisResults.overallScore}%\n`;
-            report += `ATS SCORE: ${analysisResults.atsScore}/100\n`;
-            report += `KEYWORDS MATCHED: ${analysisResults.matchedKeywords.length}/${analysisResults.totalKeywords}\n\n`;
-            
-            report += `MATCHED KEYWORDS:\n${analysisResults.matchedKeywords.join(', ')}\n\n`;
-            report += `MISSING KEYWORDS:\n${analysisResults.missingKeywords.join(', ')}\n\n`;
-            report += `RECOMMENDATIONS:\n`;
-            analysisResults.recommendations.forEach((rec, i) => {
-                report += `${i + 1}. ${rec}\n`;
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
             });
             
-            // Download report
+            // Remove active state from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'dark:bg-gray-800', 'text-purple-600', 'shadow');
+                btn.classList.add('text-gray-600', 'dark:text-gray-400');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            
+            // Add active state to selected button
+            const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            activeBtn.classList.remove('text-gray-600', 'dark:text-gray-400');
+            activeBtn.classList.add('bg-white', 'dark:bg-gray-800', 'text-purple-600', 'shadow');
+        }
+
+        function exportReport() {
+            if (!analysisResults) return;
+            
+            let report = `RESUME ANALYSIS REPORT\n`;
+            report += `Generated: ${new Date().toLocaleDateString()}\n`;
+            report += `${'='.repeat(50)}\n\n`;
+            
+            report += `SCORES\n`;
+            report += `ATS Score: ${analysisResults.atsScore}/100\n`;
+            report += `Match Score: ${analysisResults.matchScore}%\n`;
+            report += `Keywords Matched: ${analysisResults.matchedKeywords.length}/${analysisResults.totalKeywords}\n\n`;
+            
+            report += `MATCHED KEYWORDS\n`;
+            report += analysisResults.matchedKeywords.join(', ') + '\n\n';
+            
+            report += `MISSING KEYWORDS\n`;
+            report += analysisResults.missingKeywords.join(', ') + '\n\n';
+            
+            report += `RECOMMENDATIONS\n`;
+            analysisResults.recommendations.forEach((rec, i) => {
+                report += `${i + 1}. ${rec.title}\n   ${rec.description}\n\n`;
+            });
+            
+            report += `INSIGHTS\n`;
+            analysisResults.insights.forEach(insight => {
+                report += `${insight.label}: ${insight.value}\n`;
+            });
+            
             const blob = new Blob([report], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -485,7 +806,7 @@
             a.download = 'resume-analysis-report.txt';
             a.click();
             URL.revokeObjectURL(url);
-        });
+        }
     </script>
 </body>
 </html>
