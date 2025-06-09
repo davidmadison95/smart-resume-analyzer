@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Resume Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white p-6 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold">Smart Resume Analyzer</h1>
+                </div>
+                <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-white/20 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Upload Section -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Upload Resume</h2>
+                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-purple-500 transition">
+                        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt" class="hidden">
+                        <label for="resumeInput" class="cursor-pointer">
+                            <svg class="mx-auto w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            <p class="text-gray-600 dark:text-gray-300">Click to upload or drag and drop</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">PDF, DOC, DOCX, TXT (MAX. 5MB)</p>
+                        </label>
+                    </div>
+                    <div id="resumeStatus" class="mt-4 hidden">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-green-600 dark:text-green-400" id="resumeFileName"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Description Section -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in" style="animation-delay: 0.1s">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Job Description</h2>
+                    <textarea id="jobDescription" 
+                        class="w-full h-48 p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                        placeholder="Paste the job description here..."></textarea>
+                    <button id="analyzeBtn" 
+                        class="mt-4 w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Analyze Resume
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="mt-8 hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 fade-in">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Analysis Results</h2>
+                    
+                    <!-- Score Overview -->
+                    <div class="grid md:grid-cols-3 gap-6 mb-8">
+                        <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-xl">
+                            <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">Overall Match</h3>
+                            <div class="text-4xl font-bold text-blue-600 dark:text-blue-300" id="overallScore">0%</div>
+                        </div>
+                        <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-xl">
+                            <h3 class="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">Keywords Found</h3>
+                            <div class="text-4xl font-bold text-green-600 dark:text-green-300" id="keywordsFound">0</div>
+                        </div>
+                        <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-xl">
+                            <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-2">ATS Score</h3>
+                            <div class="text-4xl font-bold text-purple-600 dark:text-purple-300" id="atsScore">0/100</div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Matched Keywords -->
+                        <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Matched Keywords
+                            </h3>
+                            <div id="matchedKeywords" class="flex flex-wrap gap-2"></div>
+                        </div>
+
+                        <!-- Missing Keywords -->
+                        <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Missing Keywords
+                            </h3>
+                            <div id="missingKeywords" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="mt-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-yellow-800 dark:text-yellow-200 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Recommendations
+                        </h3>
+                        <ul id="recommendations" class="space-y-2 text-gray-700 dark:text-gray-300"></ul>
+                    </div>
+
+                    <!-- Chart -->
+                    <div class="mt-6">
+                        <canvas id="analysisChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Export Button -->
+                    <button id="exportBtn" class="mt-6 bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition transform hover:scale-105">
+                        Export Report as PDF
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // PDF.js workerSrc
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+
+        // State management
+        let resumeContent = '';
+        let analysisResults = null;
+
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+        });
+
+        // Initialize dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+
+        // File upload handling
+        const resumeInput = document.getElementById('resumeInput');
+        const resumeStatus = document.getElementById('resumeStatus');
+        const resumeFileName = document.getElementById('resumeFileName');
+
+        resumeInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+                
+                resumeFileName.textContent = file.name;
+                resumeStatus.classList.remove('hidden');
+                
+                try {
+                    resumeContent = await parseFile(file);
+                    console.log('Resume parsed successfully');
+                } catch (error) {
+                    console.error('Error parsing file:', error);
+                    alert('Error parsing file. Please try another format.');
+                }
+            }
+        });
+
+        // File parsing
+        async function parseFile(file) {
+            const fileType = file.type;
+            
+            if (fileType === 'application/pdf') {
+                return await parsePDF(file);
+            } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                return await parseDOCX(file);
+            } else if (fileType === 'text/plain') {
+                return await file.text();
+            } else {
+                throw new Error('Unsupported file type');
+            }
+        }
+
+        async function parsePDF(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+            let text = '';
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            
+            return text;
+        }
+
+        async function parseDOCX(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({arrayBuffer});
+            return result.value;
+        }
+
+        // Analysis function
+        document.getElementById('analyzeBtn').addEventListener('click', () => {
+            const jobDesc = document.getElementById('jobDescription').value;
+            
+            if (!resumeContent || !jobDesc) {
+                alert('Please upload a resume and enter a job description');
+                return;
+            }
+            
+            analysisResults = analyzeResume(resumeContent, jobDesc);
+            displayResults(analysisResults);
+        });
+
+        function analyzeResume(resume, jobDesc) {
+            // Extract keywords from job description
+            const jobKeywords = extractKeywords(jobDesc);
+            const resumeKeywords = extractKeywords(resume);
+            
+            // Find matched and missing keywords
+            const matched = jobKeywords.filter(kw => 
+                resumeKeywords.some(rk => rk.toLowerCase() === kw.toLowerCase())
+            );
+            const missing = jobKeywords.filter(kw => 
+                !matched.some(mk => mk.toLowerCase() === kw.toLowerCase())
+            );
+            
+            // Calculate scores
+            const overallScore = Math.round((matched.length / jobKeywords.length) * 100) || 0;
+            const atsScore = calculateATSScore(resume, matched.length, jobKeywords.length);
+            
+            // Generate recommendations
+            const recommendations = generateRecommendations(resume, missing, atsScore);
+            
+            return {
+                overallScore,
+                atsScore,
+                matchedKeywords: matched,
+                missingKeywords: missing,
+                totalKeywords: jobKeywords.length,
+                recommendations
+            };
+        }
+
+        function extractKeywords(text) {
+            // Common words to exclude
+            const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'including', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon', 'concerning', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few', 'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'work', 'working', 'experience', 'years', 'year', 'ability', 'skills', 'skill', 'required', 'requirements', 'looking', 'candidate', 'position', 'job', 'role']);
+            
+            // Extract potential keywords (focus on technical terms and skills)
+            const words = text.toLowerCase()
+                .replace(/[^\w\s\+\#]/g, ' ')
+                .split(/\s+/)
+                .filter(word => word.length > 2 && !stopWords.has(word));
+            
+            // Count word frequency
+            const wordFreq = {};
+            words.forEach(word => {
+                wordFreq[word] = (wordFreq[word] || 0) + 1;
+            });
+            
+            // Get top keywords based on frequency
+            const keywords = Object.entries(wordFreq)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20)
+                .map(entry => entry[0]);
+            
+            // Add common technical skills if found
+            const technicalPatterns = [
+                /python/i, /java(?!script)/i, /javascript/i, /react/i, /node\.?js/i,
+                /sql/i, /html/i, /css/i, /aws/i, /docker/i, /kubernetes/i,
+                /machine learning/i, /data analysis/i, /project management/i,
+                /agile/i, /scrum/i, /leadership/i, /communication/i, /teamwork/i
+            ];
+            
+            technicalPatterns.forEach(pattern => {
+                const matches = text.match(pattern);
+                if (matches && !keywords.includes(matches[0].toLowerCase())) {
+                    keywords.push(matches[0].toLowerCase());
+                }
+            });
+            
+            return keywords;
+        }
+
+        function calculateATSScore(resume, matchedCount, totalKeywords) {
+            let score = 50; // Base score
+            
+            // Keyword matching (40 points)
+            score += (matchedCount / totalKeywords) * 40;
+            
+            // Format checks (10 points)
+            if (resume.length > 300) score += 2;
+            if (resume.includes('@') && resume.includes('.com')) score += 2; // Email
+            if (/\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/.test(resume)) score += 2; // Phone
+            if (resume.match(/[A-Z][a-z]+\s+[A-Z][a-z]+/)) score += 2; // Name format
+            if (resume.toLowerCase().includes('experience') || resume.toLowerCase().includes('education')) score += 2;
+            
+            return Math.min(Math.round(score), 100);
+        }
+
+        function generateRecommendations(resume, missingKeywords, atsScore) {
+            const recommendations = [];
+            
+            if (missingKeywords.length > 0) {
+                recommendations.push(`Add these missing keywords to your resume: ${missingKeywords.slice(0, 5).join(', ')}`);
+            }
+            
+            if (atsScore < 70) {
+                recommendations.push('Improve your resume format with clear sections for Experience, Education, and Skills');
+            }
+            
+            if (!resume.includes('@')) {
+                recommendations.push('Include your email address in the resume');
+            }
+            
+            if (resume.length < 500) {
+                recommendations.push('Add more detail about your experience and achievements');
+            }
+            
+            if (!resume.match(/\d{4}/)) {
+                recommendations.push('Include dates for your work experience and education');
+            }
+            
+            recommendations.push('Use bullet points to list your achievements and responsibilities');
+            recommendations.push('Quantify your achievements with numbers and percentages where possible');
+            
+            return recommendations;
+        }
+
+        function displayResults(results) {
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Update scores
+            document.getElementById('overallScore').textContent = results.overallScore + '%';
+            document.getElementById('keywordsFound').textContent = results.matchedKeywords.length + '/' + results.totalKeywords;
+            document.getElementById('atsScore').textContent = results.atsScore + '/100';
+            
+            // Update matched keywords
+            const matchedContainer = document.getElementById('matchedKeywords');
+            matchedContainer.innerHTML = '';
+            results.matchedKeywords.forEach(keyword => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded-full text-sm';
+                span.textContent = keyword;
+                matchedContainer.appendChild(span);
+            });
+            
+            // Update missing keywords
+            const missingContainer = document.getElementById('missingKeywords');
+            missingContainer.innerHTML = '';
+            results.missingKeywords.slice(0, 10).forEach(keyword => {
+                const span = document.createElement('span');
+                span.className = 'px-3 py-1 bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100 rounded-full text-sm';
+                span.textContent = keyword;
+                missingContainer.appendChild(span);
+            });
+            
+            // Update recommendations
+            const recoContainer = document.getElementById('recommendations');
+            recoContainer.innerHTML = '';
+            results.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start';
+                li.innerHTML = `<span class="text-yellow-600 mr-2">•</span> ${rec}`;
+                recoContainer.appendChild(li);
+            });
+            
+            // Update chart
+            updateChart(results);
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        let chartInstance = null;
+
+        function updateChart(results) {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            chartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Overall Match', 'Keywords', 'ATS Score', 'Format', 'Content'],
+                    datasets: [{
+                        label: 'Resume Analysis',
+                        data: [
+                            results.overallScore,
+                            (results.matchedKeywords.length / results.totalKeywords) * 100,
+                            results.atsScore,
+                            results.atsScore > 70 ? 80 : 50,
+                            results.overallScore > 60 ? 75 : 45
+                        ],
+                        fill: true,
+                        backgroundColor: 'rgba(147, 51, 234, 0.2)',
+                        borderColor: 'rgba(147, 51, 234, 1)',
+                        pointBackgroundColor: 'rgba(147, 51, 234, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(147, 51, 234, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            if (!analysisResults) return;
+            
+            // Create report content
+            let report = `RESUME ANALYSIS REPORT\n`;
+            report += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+            report += `OVERALL SCORE: ${analysisResults.overallScore}%\n`;
+            report += `ATS SCORE: ${analysisResults.atsScore}/100\n`;
+            report += `KEYWORDS MATCHED: ${analysisResults.matchedKeywords.length}/${analysisResults.totalKeywords}\n\n`;
+            
+            report += `MATCHED KEYWORDS:\n${analysisResults.matchedKeywords.join(', ')}\n\n`;
+            report += `MISSING KEYWORDS:\n${analysisResults.missingKeywords.join(', ')}\n\n`;
+            report += `RECOMMENDATIONS:\n`;
+            analysisResults.recommendations.forEach((rec, i) => {
+                report += `${i + 1}. ${rec}\n`;
+            });
+            
+            // Download report
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'resume-analysis-report.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
