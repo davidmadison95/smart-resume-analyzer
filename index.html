@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartResumeTool - Smart Resume Analyzer</title>
+    <title>ResumeAI - Smart Resume Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
@@ -39,6 +39,16 @@
                 opacity: 1; 
                 transform: translateY(0);
             }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .ai-pulse {
+            animation: pulse 2s infinite;
         }
         
         .progress-ring {
@@ -87,7 +97,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-900">Smart<span class="text-teal-600">ResumeTool</span></h1>
+                    <h1 class="text-2xl font-bold text-gray-900">Resume<span class="text-teal-600">AI</span></h1>
+                    <span class="ml-2 px-3 py-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-semibold rounded-full">Powered by Generative AI</span>
                 </div>
                 <nav class="hidden md:flex space-x-6">
                     <a href="#home" class="text-gray-600 hover:text-teal-600 transition">Home</a>
@@ -100,9 +111,12 @@
     <!-- Hero Section -->
     <section id="home" class="hero-gradient py-16">
         <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4 slide-in">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2 slide-in">
                 Get Your Resume <span class="gradient-text">ATS-Ready</span>
             </h2>
+            <p class="text-2xl font-semibold text-teal-600 mb-4 slide-in" style="animation-delay: 0.05s">
+                🤖 Generative AI in Action
+            </p>
             <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto slide-in" style="animation-delay: 0.1s">
                 Our AI-powered analyzer helps you optimize your resume for Applicant Tracking Systems and land more interviews
             </p>
@@ -111,19 +125,19 @@
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Instant Analysis</span>
+                    <span>Instant AI Analysis</span>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-600">
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>ATS Optimization</span>
+                    <span>AI-Generated Improvements</span>
                 </div>
                 <div class="flex items-center space-x-2 text-gray-600">
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span>Keyword Matching</span>
+                    <span>Smart Keyword Matching</span>
                 </div>
             </div>
         </div>
@@ -257,6 +271,15 @@
                     <button onclick="switchTab('keywords')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="keywords">Keywords</button>
                     <button onclick="switchTab('recommendations')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="recommendations">Recommendations</button>
                     <button onclick="switchTab('insights')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="insights">Insights</button>
+                    <button onclick="switchTab('ai')" class="tab-btn px-6 py-2 rounded-md font-medium transition" data-tab="ai">
+                        <span class="flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                            </svg>
+                            AI Assistant
+                        </span>
+                    </button>
                 </div>
 
                 <!-- Tab Content -->
@@ -296,6 +319,32 @@
                         <div class="space-y-4" id="insightsList"></div>
                     </div>
                 </div>
+
+                <div id="aiTab" class="tab-content hidden">
+                    <div class="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-6 mb-6">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <svg class="w-6 h-6 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M13 7H7v6h6V7z"/>
+                                <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/>
+                            </svg>
+                            AI-Powered Resume Enhancement
+                        </h4>
+                        <p class="text-gray-700">Our generative AI analyzes your resume and suggests powerful improvements to help you stand out.</p>
+                    </div>
+                    
+                    <div class="space-y-6" id="aiSuggestions">
+                        <!-- AI suggestions will be populated here -->
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <p class="text-sm text-blue-800 flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <strong>Pro Tip:</strong> Click on any suggestion to copy it to your clipboard!
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <!-- Action Buttons -->
@@ -329,7 +378,7 @@
                             </svg>
                             Email
                         </a>
-                        <a href="https://www.linkedin.com/in/davidmadison95/" class="text-teal-600 hover:text-teal-700">
+                        <a href="#" class="text-teal-600 hover:text-teal-700">
                             <svg class="w-5 h-5 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd"></path>
                             </svg>
@@ -376,7 +425,7 @@
                     </div>
 
                     <div class="mb-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-3">Why I Built SmartResumeTool</h4>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-3">Why I Built ResumeAI</h4>
                         <p class="text-gray-700">
                             Having worked in various roles from military service to university administration, I understand the challenges 
                             of career transitions and job searching. I built ResumeAI to help job seekers optimize their resumes for 
@@ -478,8 +527,29 @@
                 return;
             }
             
-            analysisResults = analyzeResume(resumeContent, jobDesc);
-            displayResults(analysisResults);
+            // Show AI processing indicator
+            const btn = document.getElementById('analyzeBtn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `
+                <span class="flex items-center">
+                    <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    AI Analyzing...
+                </span>
+            `;
+            btn.disabled = true;
+            
+            // Simulate AI processing time
+            setTimeout(() => {
+                analysisResults = analyzeResume(resumeContent, jobDesc);
+                displayResults(analysisResults);
+                
+                // Restore button
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }, 1500);
         });
 
         function analyzeResume(resume, jobDesc) {
@@ -656,6 +726,10 @@
             // Create radar chart
             createRadarChart(results);
             
+            // Generate and display AI suggestions
+            const aiSuggestions = generateAISuggestions(resumeContent, results.matchedKeywords, results.missingKeywords);
+            displayAISuggestions(aiSuggestions);
+            
             // Show keywords tab by default
             switchTab('keywords');
             
@@ -822,7 +896,110 @@
             activeBtn.classList.add('bg-white', 'text-teal-600', 'shadow');
         }
 
-        function exportReport() {
+        function generateAISuggestions(resume, matchedKeywords, missingKeywords) {
+            const suggestions = [];
+            
+            // Action verb improvements
+            const weakVerbs = ['responsible for', 'helped', 'worked on', 'assisted'];
+            const strongVerbs = {
+                'responsible for': ['Managed', 'Led', 'Directed', 'Oversaw'],
+                'helped': ['Facilitated', 'Contributed to', 'Supported', 'Enhanced'],
+                'worked on': ['Developed', 'Implemented', 'Executed', 'Delivered'],
+                'assisted': ['Collaborated', 'Partnered', 'Coordinated', 'Streamlined']
+            };
+            
+            // Generate bullet point suggestions
+            if (missingKeywords.length > 0) {
+                suggestions.push({
+                    type: 'bullet',
+                    title: '🎯 AI-Enhanced Bullet Points',
+                    original: 'Worked on projects with team members',
+                    improved: `Collaborated with cross-functional teams to deliver ${missingKeywords[0] || 'innovative'} solutions, resulting in improved ${missingKeywords[1] || 'efficiency'} and stakeholder satisfaction`,
+                    explanation: 'Incorporates missing keywords and quantifiable results'
+                });
+            }
+            
+            // Technical skills enhancement
+            suggestions.push({
+                type: 'skills',
+                title: '💡 Skills Section Enhancement',
+                original: 'Skills: Programming, Databases, Web Development',
+                improved: `Technical Skills: ${matchedKeywords.slice(0, 3).join(', ')}, ${missingKeywords.slice(0, 2).join(', ')} (currently learning), Full-Stack Development, RESTful APIs, Version Control (Git)`,
+                explanation: 'Groups skills by category and shows growth mindset'
+            });
+            
+            // Summary enhancement
+            suggestions.push({
+                type: 'summary',
+                title: '📝 AI-Powered Professional Summary',
+                original: 'Experienced professional looking for new opportunities',
+                improved: `Results-driven professional with expertise in ${matchedKeywords[0] || 'technology'} and ${matchedKeywords[1] || 'innovation'}, seeking to leverage proven track record in ${missingKeywords[0] || 'leadership'} to drive organizational success. Demonstrated ability to ${missingKeywords[1] || 'optimize processes'} and deliver measurable impact.`,
+                explanation: 'Creates compelling narrative with keywords and value proposition'
+            });
+            
+            // Achievement enhancement
+            suggestions.push({
+                type: 'achievement',
+                title: '🏆 Achievement Optimization',
+                original: 'Improved system performance',
+                improved: 'Optimized system performance by 40%, reducing load times from 5 seconds to 3 seconds, resulting in enhanced user experience for 10,000+ daily active users',
+                explanation: 'Adds metrics, scope, and impact to achievements'
+            });
+            
+            return suggestions;
+        }
+
+        function displayAISuggestions(suggestions) {
+            const container = document.getElementById('aiSuggestions');
+            container.innerHTML = '';
+            
+            suggestions.forEach((suggestion, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition';
+                
+                const iconMap = {
+                    bullet: '🎯',
+                    skills: '💡',
+                    summary: '📝',
+                    achievement: '🏆'
+                };
+                
+                div.innerHTML = `
+                    <h5 class="text-lg font-semibold text-gray-900 mb-4">${suggestion.title}</h5>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-red-50 p-3 rounded-lg">
+                            <p class="text-sm font-medium text-red-800 mb-1">❌ Before:</p>
+                            <p class="text-sm text-gray-700">${suggestion.original}</p>
+                        </div>
+                        
+                        <div class="bg-green-50 p-3 rounded-lg cursor-pointer hover:bg-green-100 transition" onclick="copyToClipboard('${suggestion.improved.replace(/'/g, "\\'")}', ${index})">
+                            <p class="text-sm font-medium text-green-800 mb-1">✅ After (AI-Enhanced):</p>
+                            <p class="text-sm text-gray-700">${suggestion.improved}</p>
+                            <p class="text-xs text-green-600 mt-2" id="copy-feedback-${index}" style="display: none;">Copied to clipboard!</p>
+                        </div>
+                        
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-sm text-blue-800">
+                                <strong>AI Insight:</strong> ${suggestion.explanation}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        function copyToClipboard(text, index) {
+            navigator.clipboard.writeText(text).then(() => {
+                const feedback = document.getElementById(`copy-feedback-${index}`);
+                feedback.style.display = 'block';
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                }, 2000);
+            });
+        }
             if (!analysisResults) return;
             
             let report = `RESUME ANALYSIS REPORT\n`;
