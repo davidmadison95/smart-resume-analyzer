@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeAI - Smart Resume Analyzer</title>
+    <title>SmartResumeTool - AI-Powered Resume Analyzer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
@@ -17,6 +17,39 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        
+        // Ensure DOM is fully loaded
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('SmartResumeTool initialized');
+            
+            // Check if PDF.js is loaded
+            if (typeof pdfjsLib === 'undefined') {
+                console.error('PDF.js library not loaded');
+                // Try to load it again
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js';
+                script.onload = function() {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+                    console.log('PDF.js loaded successfully on retry');
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('PDF.js loaded successfully');
+            }
+            
+            // Check if Mammoth is loaded
+            if (typeof mammoth === 'undefined') {
+                console.error('Mammoth.js library not loaded');
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js';
+                script.onload = function() {
+                    console.log('Mammoth.js loaded successfully on retry');
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('Mammoth.js loaded successfully');
+            }
+        });
         
         .hero-gradient {
             background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
@@ -97,7 +130,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                    <h1 class="text-2xl font-bold text-gray-900">Resume<span class="text-teal-600">AI</span></h1>
+                    <h1 class="text-2xl font-bold text-gray-900">Smart<span class="text-teal-600">ResumeTool</span></h1>
                     <span class="ml-2 px-3 py-1 bg-gradient-to-r from-teal-500 to-cyan-500 text-white text-xs font-semibold rounded-full">Powered by Generative AI</span>
                 </div>
                 <nav class="hidden md:flex space-x-6">
@@ -155,9 +188,9 @@
                         <span class="text-sm text-gray-500">Step 1 of 2</span>
                     </div>
                     
-                    <div class="border-2 border-dashed border-teal-300 rounded-xl p-8 text-center hover:border-teal-500 transition bg-teal-50">
-                        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt" class="hidden">
-                        <label for="resumeInput" class="cursor-pointer">
+                    <div id="dropZone" class="border-2 border-dashed border-teal-300 rounded-xl p-8 text-center hover:border-teal-500 transition bg-teal-50 cursor-pointer" onclick="document.getElementById('resumeInput').click()">
+                        <input type="file" id="resumeInput" accept=".pdf,.doc,.docx,.txt" class="hidden" onchange="handleFileSelect(event)">
+                        <div class="pointer-events-none">
                             <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -166,7 +199,7 @@
                             <p class="text-lg font-medium text-gray-900 mb-2">Drop your resume here</p>
                             <p class="text-sm text-gray-500">or click to browse</p>
                             <p class="text-xs text-gray-400 mt-2">Supports PDF, DOC, DOCX, TXT (Max 5MB)</p>
-                        </label>
+                        </div>
                     </div>
                     
                     <div id="resumeStatus" class="mt-6 hidden">
@@ -201,7 +234,7 @@
 
             <!-- Analyze Button -->
             <div class="text-center mt-8">
-                <button id="analyzeBtn" 
+                                    <button id="analyzeBtn" onclick="analyzeResumeClick()" 
                     class="px-12 py-4 bg-teal-600 text-white text-lg font-semibold rounded-xl hover:bg-teal-700 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed teal-glow">
                     <span class="flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -378,7 +411,7 @@
                             </svg>
                             Email
                         </a>
-                        <a href="#" class="text-teal-600 hover:text-teal-700">
+                        <a href="https://www.linkedin.com/in/davidmadison95/" target="_blank" class="text-teal-600 hover:text-teal-700">
                             <svg class="w-5 h-5 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd"></path>
                             </svg>
@@ -425,10 +458,10 @@
                     </div>
 
                     <div class="mb-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-3">Why I Built ResumeAI</h4>
+                        <h4 class="text-lg font-semibold text-gray-900 mb-3">Why I Built SmartResumeTool</h4>
                         <p class="text-gray-700">
                             Having worked in various roles from military service to university administration, I understand the challenges 
-                            of career transitions and job searching. I built ResumeAI to help job seekers optimize their resumes for 
+                            of career transitions and job searching. I built SmartResumeTool to help job seekers optimize their resumes for 
                             ATS systems, making the application process more accessible and successful for everyone.
                         </p>
                     </div>
@@ -444,8 +477,18 @@
     </section>
 
     <script>
-        // PDF.js configuration
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        // PDF.js configuration - MUST be set first
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        }
+
+        // Wait for all libraries to load
+        window.addEventListener('load', function() {
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+                console.log('PDF.js worker configured');
+            }
+        });
 
         // State
         let resumeContent = '';
@@ -461,74 +504,181 @@
             });
         });
 
-        // File upload
-        document.getElementById('resumeInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
+        // Direct file select handler
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
             if (file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File size must be less than 5MB');
-                    return;
-                }
-                
-                document.getElementById('resumeFileName').textContent = file.name;
-                document.getElementById('resumeStatus').classList.remove('hidden');
-                
-                try {
-                    resumeContent = await parseFile(file);
-                    console.log('Resume parsed successfully');
-                } catch (error) {
-                    console.error('Error parsing file:', error);
-                    alert('Error parsing file. Please try another format.');
-                }
+                handleFile(file);
+            }
+        }
+
+        // Initialize drag and drop when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // File upload handling with drag and drop
+            const dropZone = document.getElementById('dropZone');
+            const resumeInput = document.getElementById('resumeInput');
+            const resumeStatus = document.getElementById('resumeStatus');
+            const resumeFileName = document.getElementById('resumeFileName');
+
+            if (dropZone) {
+                // Prevent default drag behaviors
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                    document.body.addEventListener(eventName, preventDefaults, false);
+                });
+
+                // Highlight drop zone when item is dragged over it
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, highlight, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, unhighlight, false);
+                });
+
+                // Handle dropped files
+                dropZone.addEventListener('drop', handleDrop, false);
             }
         });
 
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('border-teal-600', 'bg-teal-100', 'scale-105');
+            dropZone.style.transform = 'scale(1.02)';
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('border-teal-600', 'scale-105');
+            dropZone.style.transform = 'scale(1)';
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        async function handleFile(file) {
+            console.log('Handling file:', file.name, 'Type:', file.type, 'Size:', file.size);
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+            
+            // Check file extension if MIME type is empty (happens in some browsers)
+            const fileName = file.name.toLowerCase();
+            const validExtensions = ['.pdf', '.doc', '.docx', '.txt'];
+            const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+            
+            const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/msword'];
+            const hasValidType = validTypes.includes(file.type);
+            
+            if (!hasValidType && !hasValidExtension) {
+                alert('Please upload a PDF, DOC, DOCX, or TXT file');
+                return;
+            }
+            
+            document.getElementById('resumeFileName').textContent = file.name;
+            document.getElementById('resumeStatus').classList.remove('hidden');
+            
+            try {
+                resumeContent = await parseFile(file);
+                console.log('Resume parsed successfully, content length:', resumeContent.length);
+                if (resumeContent.length < 50) {
+                    alert('The resume appears to be empty or too short. Please check the file.');
+                    resumeContent = '';
+                }
+            } catch (error) {
+                console.error('Error parsing file:', error);
+                alert('Error parsing file: ' + error.message);
+                resumeContent = '';
+            }
+        }
+
         // File parsing functions
         async function parseFile(file) {
-            const fileType = file.type;
+            const fileType = file.type || '';
+            const fileName = file.name.toLowerCase();
             
-            if (fileType === 'application/pdf') {
-                return await parsePDF(file);
-            } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-                return await parseDOCX(file);
-            } else if (fileType === 'text/plain') {
-                return await file.text();
-            } else {
-                throw new Error('Unsupported file type');
+            console.log('Parsing file - Type:', fileType, 'Name:', fileName);
+            
+            try {
+                // Check by extension first, then by MIME type
+                if (fileName.endsWith('.pdf') || fileType === 'application/pdf') {
+                    return await parsePDF(file);
+                } else if (fileName.endsWith('.docx') || fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    return await parseDOCX(file);
+                } else if (fileName.endsWith('.txt') || fileType === 'text/plain') {
+                    return await file.text();
+                } else if (fileName.endsWith('.doc') || fileType === 'application/msword') {
+                    // For older .doc files, try to parse as text
+                    alert('Note: .DOC files may not parse perfectly. For best results, please save as .DOCX or .PDF');
+                    return await parseDOCX(file); // Try DOCX parser
+                } else {
+                    throw new Error('Unsupported file type. Please upload a PDF, DOCX, DOC, or TXT file.');
+                }
+            } catch (error) {
+                console.error('Parse error:', error);
+                throw error;
             }
         }
 
         async function parsePDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
-            let text = '';
-            
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                text += content.items.map(item => item.str).join(' ') + '\n';
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                let text = '';
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(' ') + '\n';
+                }
+                
+                console.log('PDF parsed successfully, text length:', text.length);
+                return text;
+            } catch (error) {
+                console.error('PDF parsing error:', error);
+                throw new Error('Failed to parse PDF. Please ensure the file is not corrupted or password-protected.');
             }
-            
-            return text;
         }
 
         async function parseDOCX(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await mammoth.extractRawText({arrayBuffer});
-            return result.value;
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({arrayBuffer});
+                console.log('DOCX parsed successfully, text length:', result.value.length);
+                return result.value;
+            } catch (error) {
+                console.error('DOCX parsing error:', error);
+                throw new Error('Failed to parse Word document. Please ensure the file is not corrupted.');
+            }
         }
 
-        // Analysis
-        document.getElementById('analyzeBtn').addEventListener('click', () => {
-            const jobDesc = document.getElementById('jobDescription').value;
+        // Analysis button event listener
+        function analyzeResumeClick() {
+            const jobDesc = document.getElementById('jobDescription').value.trim();
             
-            if (!resumeContent || !jobDesc) {
-                alert('Please upload a resume and enter a job description');
+            if (!resumeContent || resumeContent.trim() === '') {
+                alert('Please upload a resume first');
                 return;
             }
             
-            // Show AI processing indicator
+            if (!jobDesc) {
+                alert('Please enter a job description');
+                return;
+            }
+            
             const btn = document.getElementById('analyzeBtn');
+            
+            // Show AI processing indicator
             const originalContent = btn.innerHTML;
             btn.innerHTML = `
                 <span class="flex items-center">
@@ -543,18 +693,33 @@
             
             // Simulate AI processing time
             setTimeout(() => {
-                analysisResults = analyzeResume(resumeContent, jobDesc);
-                displayResults(analysisResults);
-                
-                // Restore button
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
+                try {
+                    analysisResults = performAnalysis(resumeContent, jobDesc);
+                    displayResults(analysisResults);
+                    
+                    // Restore button
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    alert('An error occurred during analysis. Please try again.');
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }
             }, 1500);
-        });
+        }
 
-        function analyzeResume(resume, jobDesc) {
+        // Main analysis function
+        function performAnalysis(resume, jobDesc) {
+            console.log('Starting analysis...');
+            console.log('Resume length:', resume.length);
+            console.log('Job description length:', jobDesc.length);
+            
             const jobKeywords = extractKeywords(jobDesc);
             const resumeKeywords = extractKeywords(resume);
+            
+            console.log('Job keywords found:', jobKeywords.length);
+            console.log('Resume keywords found:', resumeKeywords.length);
             
             const matched = jobKeywords.filter(kw => 
                 resumeKeywords.some(rk => rk.toLowerCase() === kw.toLowerCase())
@@ -569,6 +734,8 @@
             const recommendations = generateRecommendations(resume, missing, atsScore);
             const insights = generateInsights(resume, matched, missing);
             
+            console.log('Analysis complete. Match score:', matchScore, 'ATS score:', atsScore);
+            
             return {
                 matchScore,
                 atsScore,
@@ -581,12 +748,22 @@
         }
 
         function extractKeywords(text) {
+            if (!text || text.length < 10) {
+                console.warn('Text too short for keyword extraction');
+                return [];
+            }
+            
             const stopWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during', 'including', 'until', 'against', 'among', 'throughout', 'despite', 'towards', 'upon', 'concerning', 'is', 'are', 'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few', 'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'work', 'working', 'experience', 'years', 'year', 'ability', 'skills', 'skill', 'required', 'requirements', 'looking', 'candidate', 'position', 'job', 'role', 'us', 'our', 'team', 'company', 'business']);
             
             const words = text.toLowerCase()
                 .replace(/[^\w\s\+\#\.]/g, ' ')
                 .split(/\s+/)
                 .filter(word => word.length > 2 && !stopWords.has(word));
+            
+            if (words.length === 0) {
+                console.warn('No valid words found after filtering');
+                return [];
+            }
             
             const wordFreq = {};
             words.forEach(word => {
@@ -614,7 +791,7 @@
                 }
             });
             
-            return keywords;
+            return keywords.length > 0 ? keywords : ['general', 'skills'];
         }
 
         function calculateATSScore(resume, matchedCount, totalKeywords) {
@@ -702,6 +879,8 @@
         }
 
         function displayResults(results) {
+            console.log('Displaying results:', results);
+            
             document.getElementById('results').classList.remove('hidden');
             
             // Animate scores
@@ -735,10 +914,17 @@
             
             // Scroll to results
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            
+            console.log('Results displayed successfully');
         }
 
         function animateScore(elementId, targetValue, suffix = '') {
             const element = document.getElementById(elementId);
+            if (!element) {
+                console.error('Element not found:', elementId);
+                return;
+            }
+            
             let currentValue = 0;
             const increment = targetValue / 30;
             
@@ -765,7 +951,17 @@
 
         function displayKeywords(containerId, keywords, color) {
             const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Container not found:', containerId);
+                return;
+            }
+            
             container.innerHTML = '';
+            
+            if (!keywords || keywords.length === 0) {
+                container.innerHTML = '<span class="text-gray-500 text-sm">No keywords found</span>';
+                return;
+            }
             
             keywords.forEach(keyword => {
                 const span = document.createElement('span');
@@ -892,8 +1088,10 @@
             
             // Add active state to selected button
             const activeBtn = document.querySelector(`[data-tab="${tabName}"]`);
-            activeBtn.classList.remove('text-gray-600');
-            activeBtn.classList.add('bg-white', 'text-teal-600', 'shadow');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-600');
+                activeBtn.classList.add('bg-white', 'text-teal-600', 'shadow');
+            }
         }
 
         function generateAISuggestions(resume, matchedKeywords, missingKeywords) {
