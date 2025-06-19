@@ -508,7 +508,11 @@
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
-                handleFile(file);
+                try {
+                    handleFile(file);
+                } catch (err) {
+                    console.error("File handling failed:", err);
+                }
             }
         }
 
@@ -560,6 +564,10 @@
             const dt = e.dataTransfer;
             const files = dt.files;
             if (files.length > 0) {
+                const resumeInput = document.getElementById('resumeInput');
+                if (resumeInput) {
+                    resumeInput.files = files; // Add this so the input knows what file was dropped
+                }
                 handleFile(files[0]);
             }
         }
