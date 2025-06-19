@@ -561,15 +561,14 @@
         }
 
         function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            if (files.length > 0) {
-                const resumeInput = document.getElementById('resumeInput');
-                if (resumeInput) {
-                    resumeInput.files = files; // Add this so the input knows what file was dropped
-                }
-                handleFile(files[0]);
-            }
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+        resumeInput.files = files; // ✅ This fixes drag-and-drop not syncing with input
+        handleFile(files[0]);
+    }
+}
+
         }
 
         async function handleFile(file) {
